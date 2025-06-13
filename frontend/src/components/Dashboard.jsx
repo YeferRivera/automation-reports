@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getDashboardData } from '../api';
 import PrinterStats from './PrinterStats';
@@ -9,10 +9,16 @@ import BarChartComponent from './BarChartComponent';
 function Dashboard() {
   const { processId } = useParams();
   const [dashboardData, setDashboardData] = useState(null);
+  const [processInfo, setProcessInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    // Obtener información del proceso del localStorage
+    const savedProcesses = JSON.parse(localStorage.getItem('printer-reports-processes') || '[]');
+    const currentProcess = savedProcesses.find(p => p.id === processId);
+    setProcessInfo(currentProcess);
+    
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -55,6 +61,22 @@ function Dashboard() {
 
   return (
     <div className="space-y-8">
+      {processInfo && (
+        <div className="bg-indigo-50 p-4 rounded-lg">
+          <div className="flex flex-wrap justify-between items-center">
+            <div>
+              <h3 className="font-semibold">Reporte generado:</h3>
+              <p>{new Date(processInfo.timestamp).toLocaleString()}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold">Archivos procesados:</h3>
+              <p>Maestro: {processInfo.masterFile}</p>
+              <p>Factura: {processInfo.invoiceFile}</p>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <PrinterStats stats={dashboardData.resumen_general} />
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

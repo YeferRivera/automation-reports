@@ -37,6 +37,9 @@ function FileUpload() {
           clearInterval(statusInterval);
           setStatusMessage('¡Procesamiento completado!');
           setIsProcessing(false);
+          
+          // Guardar información en localStorage
+          saveProcessInfo(uploadResponse.process_id, masterFile.name, invoiceFile.name);
         } else if (statusResponse.status === 'error') {
           clearInterval(statusInterval);
           setError(statusResponse.message);
@@ -47,6 +50,29 @@ function FileUpload() {
     } catch (err) {
       setError(err.message || 'Error al procesar los archivos');
       setIsProcessing(false);
+    }
+  };
+  
+  const saveProcessInfo = (processId, masterFileName, invoiceFileName) => {
+    try {
+      // Obtener procesos existentes o inicializar un array vacío
+      const existingProcesses = JSON.parse(localStorage.getItem('printer-reports-processes') || '[]');
+      
+      // Agregar nuevo proceso al inicio del array (los más recientes primero)
+      const newProcess = {
+        id: processId,
+        masterFile: masterFileName,
+        invoiceFile: invoiceFileName,
+        timestamp: new Date().toISOString()
+      };
+      
+      // Limitar a los 5 procesos más recientes
+      const updatedProcesses = [newProcess, ...existingProcesses].slice(0, 5);
+      
+      // Guardar en localStorage
+      localStorage.setItem('printer-reports-processes', JSON.stringify(updatedProcesses));
+    } catch (error) {
+      console.error('Error al guardar información de proceso:', error);
     }
   };
   
